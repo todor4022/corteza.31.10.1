@@ -7,9 +7,27 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      seed:
+        condition: service_completed_successfully
     ports:
       - "127.0.0.1:${HTTP_PORT:-18080}:80"
     volumes:
+      - ./data/server:/data
+
+  seed:
+    image: cortezaproject/corteza:${VERSION:?Set VERSION in .env}
+    restart: "no"
+    env_file:
+      - .env
+    entrypoint: ["/bin/sh", "/scripts/seed-user.sh"]
+    depends_on:
+      db:
+        condition: service_healthy
+    # The image's HTTP healthcheck applies to the web server, not this CLI job.
+    healthcheck:
+      disable: true
+    volumes:
+      - ./scripts/seed-user.sh:/scripts/seed-user.sh:ro
       - ./data/server:/data
 
   db:

@@ -10,7 +10,16 @@ Docker Engine and Docker Compose are required. Run these commands from this fold
 docker compose up -d --wait --wait-timeout 180
 ```
 
-Open <http://localhost:18080> and create your account. The first account becomes the administrator. Email is not configured, so local sign-ups are automatically confirmed.
+Open <http://localhost:18080> and sign in with the seeded administrator:
+
+- Email: `demo@example.com`
+- Password: `DemoPassword123!`
+
+These are the local demo defaults. Set `SEED_USER_EMAIL` and `SEED_USER_PASSWORD` in `.env` before the first start to use different credentials.
+
+The one-shot `seed` service waits for PostgreSQL, initializes Corteza's database through its CLI, and creates the administrator. The web server starts after seeding succeeds. The seed container exiting with code 0 is expected.
+
+Email is not configured, so local sign-ups are automatically confirmed.
 
 The local `.env` has generated database and JWT signing secrets. Keep it private. On a fresh checkout without `.env`, prepare it first:
 
@@ -37,6 +46,9 @@ docker compose down
 # PostgreSQL console
 docker compose exec db psql -U corteza -d corteza
 
+# Rerun the user seed (existing users are skipped)
+docker compose run --rm seed
+
 # Check Corteza
 curl --fail http://localhost:18080/healthcheck
 curl --fail http://localhost:18080/version
@@ -47,6 +59,12 @@ curl --fail http://localhost:18080/version
 PostgreSQL stores its data in `./data/db`, and Corteza stores attachments in `./data/server`. Both survive container recreation and `docker compose down`. These directories and `.env` are excluded from Git. Preserve `.env` along with your data when moving this installation.
 
 PostgreSQL credentials in `.env` initialize a new database only. Changing them later also requires updating the existing PostgreSQL role; editing `.env` alone does not change the stored password.
+
+The user seed checks for an exact email match, ignoring case, and skips existing accounts. It does not reset their passwords or change their roles. Changing `SEED_USER_EMAIL` to a new address creates another administrator on the next start; changing `SEED_USER_PASSWORD` does not reset an existing account. To reset a password explicitly, use the interactive CLI:
+
+```sh
+docker compose exec server corteza-server users password demo@example.com
+```
 
 To make a database backup while PostgreSQL is running:
 
