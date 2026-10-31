@@ -22,11 +22,13 @@ if printf '%s\n' "$users" | awk '
     END { exit !found }
 '; then
     printf 'Seed user %s already exists; skipping.\n' "$SEED_USER_EMAIL"
-    exit 0
+else
+    printf 'Creating seed administrator %s.\n' "$SEED_USER_EMAIL"
+    corteza-server users add "$SEED_USER_EMAIL" \
+        --password "$SEED_USER_PASSWORD" \
+        --role super-admin
 fi
 
-printf 'Creating seed administrator %s.\n' "$SEED_USER_EMAIL"
-corteza-server users add "$SEED_USER_EMAIL" \
-    --password "$SEED_USER_PASSWORD" \
-    --role super-admin
-printf 'Seed administrator is ready.\n'
+printf 'Seeding the Plexys Homework namespace and Support Ticket module.\n'
+corteza-server import --skip-existing /seed/plexys-homework.yaml
+printf 'Seed administrator and Plexys Homework resources are ready.\n'

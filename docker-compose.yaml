@@ -9,6 +9,7 @@ services:
         condition: service_healthy
       seed:
         condition: service_completed_successfully
+        restart: true
     ports:
       - "127.0.0.1:${HTTP_PORT:-18080}:80"
     volumes:
@@ -28,6 +29,7 @@ services:
       disable: true
     volumes:
       - ./scripts/seed-user.sh:/scripts/seed-user.sh:ro
+      - ./seed:/seed:ro
       - ./data/server:/data
 
   db:

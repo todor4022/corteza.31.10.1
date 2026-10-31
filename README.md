@@ -17,7 +17,19 @@ Open <http://localhost:18080> and sign in with the seeded administrator:
 
 These are the local demo defaults. Set `SEED_USER_EMAIL` and `SEED_USER_PASSWORD` in `.env` before the first start to use different credentials.
 
-The one-shot `seed` service waits for PostgreSQL, initializes Corteza's database through its CLI, and creates the administrator. The web server starts after seeding succeeds. The seed container exiting with code 0 is expected.
+The one-shot `seed` service waits for PostgreSQL, initializes Corteza's database through its CLI, creates the administrator, and imports the namespace and module below. The web server starts after seeding succeeds. The seed container exiting with code 0 is expected.
+
+In **Low Code**, open the **Plexys Homework** namespace (`plexys-homework`). Its **Support Ticket** module (`support-ticket`) has these fields:
+
+| Field label | Internal name | Type | Required | Options |
+| --- | --- | --- | --- | --- |
+| Subject | `Subject` | String | Yes | |
+| Description | `Description` | String | No | Multi-line plain text |
+| Status | `Status` | Select | Yes | New, In Progress, Resolved, Closed |
+| Priority | `Priority` | Select | Yes | Low, Medium, High, Urgent |
+| Due Date | `DueDate` | Date/Time | No | Both date and time |
+
+The seeded administrator can manage this namespace and module. Their definitions live in [`seed/plexys-homework.yaml`](seed/plexys-homework.yaml).
 
 Email is not configured, so local sign-ups are automatically confirmed.
 
@@ -46,8 +58,10 @@ docker compose down
 # PostgreSQL console
 docker compose exec db psql -U corteza -d corteza
 
-# Rerun the user seed (existing users are skipped)
+# Rerun the user and namespace seed (existing resources are preserved)
 docker compose run --rm seed
+# Load any newly imported module definitions into the running server
+docker compose restart server
 
 # Check Corteza
 curl --fail http://localhost:18080/healthcheck
@@ -65,6 +79,8 @@ The user seed checks for an exact email match, ignoring case, and skips existing
 ```sh
 docker compose exec server corteza-server users password demo@example.com
 ```
+
+Namespace and module seeding still runs when the user already exists. The importer uses `--skip-existing`, matching the namespace by slug, the module by handle, and fields by name, so repeat runs preserve edits and reuse the existing resources. The YAML provides initial configuration; change existing fields in Corteza's module editor.
 
 To make a database backup while PostgreSQL is running:
 

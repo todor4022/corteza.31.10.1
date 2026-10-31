@@ -1,0 +1,61 @@
+namespaces:
+  plexys-homework:
+    name: Plexys Homework
+    enabled: true
+    modules:
+      support-ticket:
+        name: Support Ticket
+        fields:
+          Subject:
+            label: Subject
+            kind: String
+            place: 0
+            required: true
+          Description:
+            label: Description
+            kind: String
+            place: 1
+            required: false
+            options:
+              multiLine: true
+              useRichTextEditor: false
+          Status:
+            label: Status
+            kind: Select
+            place: 2
+            required: true
+            options:
+              selectType: default
+              options:
+                - text: New
+                  value: New
+                - text: In Progress
+                  value: In Progress
+                - text: Resolved
+                  value: Resolved
+                - text: Closed
+                  value: Closed
+          Priority:
+            label: Priority
+            kind: Select
+            place: 3
+            required: true
+            options:
+              selectType: default
+              options:
+                - text: Low
+                  value: Low
+                - text: Medium
+                  value: Medium
+                - text: High
+                  value: High
+                - text: Urgent
+                  value: Urgent
+          DueDate:
+            label: Due Date
+            kind: DateTime
+            place: 4
+            required: false
+            options:
+              onlyDate: false
+              onlyTime: false
