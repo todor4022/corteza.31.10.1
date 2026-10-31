@@ -1,9 +1,15 @@
 services:
   server:
-    image: cortezaproject/corteza:${VERSION:?Set VERSION in .env}
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+      args:
+        VERSION: ${VERSION:?Set VERSION in .env}
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      HTTP_WEBAPP_LIST: admin,compose,workflow,reporter,privacy,tickets
     depends_on:
       db:
         condition: service_healthy

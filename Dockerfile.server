@@ -1,0 +1,11 @@
+ARG VERSION=2026.9
+
+FROM node:24-alpine AS tickets-build
+WORKDIR /app
+COPY tickets/package.json tickets/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY tickets/ ./
+RUN npm run build
+
+FROM cortezaproject/corteza:${VERSION}
+COPY --from=tickets-build /app/dist/ /corteza/webapp/tickets/

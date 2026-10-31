@@ -17,7 +17,7 @@ Open <http://localhost:18080> and sign in with the seeded administrator:
 
 These are the local demo defaults. Set `SEED_USER_EMAIL` and `SEED_USER_PASSWORD` in `.env` before the first start to use different credentials.
 
-The one-shot `seed` service waits for PostgreSQL, initializes Corteza's database through its CLI, creates the administrator, and imports the namespace, module, and sample tickets below. The web server starts after seeding succeeds. The seed container exiting with code 0 is expected. Docker Compose builds the seed image on the first start; it adds Python for the record seed's HTTP and JSON handling.
+The one-shot `seed` service waits for PostgreSQL, initializes Corteza's database through its CLI, creates the administrator, and imports the namespace, module, and sample tickets below. The web server starts after seeding succeeds. The seed container exiting with code 0 is expected. Docker Compose builds the seed and server images on the first start. The seed image adds Python for the record seed's HTTP and JSON handling; the server image builds and includes the Vue tickets app.
 
 In **Low Code**, open the **Plexys Homework** namespace (`plexys-homework`). Its **Support Ticket** module (`support-ticket`) has these fields:
 
@@ -53,6 +53,28 @@ openssl rand -hex 32
 Use those two values for `POSTGRES_PASSWORD` and `AUTH_JWT_SECRET`, respectively, before starting. `DB_DSN` picks up the database credentials automatically.
 
 Corteza listens only on `127.0.0.1`; PostgreSQL is reachable only within the Compose network. To change the local port, edit `HTTP_PORT` in `.env` and recreate the containers with `docker compose up -d --wait`.
+
+## Tickets app
+
+Open <http://localhost:18080/tickets> (or `<domain>/tickets`). This minimal Vue 3 app currently displays only `hello`.
+
+The source lives in [`tickets/`](tickets/). [`Dockerfile.server`](Dockerfile.server) builds it with Vite and copies the static output into Corteza's webapp directory. Compose registers `tickets` in `HTTP_WEBAPP_LIST`, so Corteza serves the app and its assets directly on the same domain and port.
+
+Build and start it, or rebuild after editing the app:
+
+```sh
+docker compose up -d --build --wait --wait-timeout 180 server
+```
+
+For frontend development with Node.js 22.12 or newer:
+
+```sh
+cd tickets
+npm ci
+npm run dev
+```
+
+Open <http://localhost:5173/tickets/> for hot reload. The standalone development server is separate from the app served by Corteza; rebuild the server image to update `/tickets` there.
 
 ## Manage
 
