@@ -56,7 +56,7 @@ Corteza listens only on `127.0.0.1`; PostgreSQL is reachable only within the Com
 
 ## Tickets app
 
-Open <http://localhost:18080/tickets> (or `<domain>/tickets`). This minimal Vue 3 app currently displays only `hello`.
+Open <http://localhost:18080/tickets> (or `<domain>/tickets`). The Vue 3 Composition API app uses shadcn-vue components to list Support Ticket records, create and edit tickets in a modal, and delete tickets after confirmation. The list uses cursor pagination, and field labels, required fields, and select options come from the Corteza module definition. Due dates are displayed and entered in your browser's local time zone and stored in UTC.
 
 The source lives in [`tickets/`](tickets/). [`Dockerfile.server`](Dockerfile.server) builds it with Vite and copies the static output into Corteza's webapp directory. Compose registers `tickets` in `HTTP_WEBAPP_LIST`, so Corteza serves the app and its assets directly on the same domain and port.
 
@@ -75,6 +75,30 @@ npm run dev
 ```
 
 Open <http://localhost:5173/tickets/> for hot reload. The standalone development server is separate from the app served by Corteza; rebuild the server image to update `/tickets` there.
+
+Vite proxies `/api`, `/auth`, and `/tickets/config.js` to Corteza at `localhost:18080`. For sign-in on the development port, add this explicit callback to `.env` and recreate the server before using Vite:
+
+```dotenv
+AUTH_DEFAULT_REDIRECT_URIS=http://localhost:5173/tickets/auth/callback
+```
+
+Adjust the proxy target in `tickets/vite.config.js` if you change Corteza's port. Remove the development callback when it is no longer needed. The normal app served by Corteza needs no extra redirect configuration.
+
+Authentication lives in `tickets/src/lib/auth.js` and is exposed through the shared `useCortezaAuth()` composable. It uses Corteza's built-in `/auth/oauth2/default-client` authorization-code flow with `profile api` scopes and the `/tickets/auth/callback` route. An existing Corteza login session is reused; otherwise users see Corteza's normal login page. OAuth client credentials stay on the server. This is Corteza's existing default-client flow; its helper does not forward PKCE challenges.
+
+Access tokens stay in memory. Refresh tokens and temporary OAuth state use only `tickets.auth.*` session-storage keys. State is cryptographically random, validated and consumed once; callback codes are removed from the URL. Concurrent requests share one refresh operation, refreshed tokens replace previous tokens, and duplicated tabs obtain separate grants. A temporary network failure preserves refresh credentials. Sign-out clears Tickets credentials, notifies other Tickets tabs, and opens Corteza's logout page. Other Corteza apps can retain their separately issued tokens.
+
+API calls use the signed-in user's bearer token. Corteza remains responsible for all access checks and the `createdBy`, `updatedBy`, and `deletedBy` identities. The app does not send those identities, set an owner, use a service account, or store a client secret. Buttons and form fields follow the permission flags returned by Corteza. Edits PATCH only changed fields on the selected record, preserving other fields, record metadata, and ownership. Concurrent changes to different fields are preserved; simultaneous changes to the same field use Corteza's last-write behavior.
+
+`ACTIONLOG_ENABLED=true` enables Corteza's action log for subsequent activity. On an older checkout, change this setting in `.env` before recreating the server. Record authorship is stored independently of the action log; a complete field-by-field revision history additionally requires Corteza's module revision configuration.
+
+Run authentication, API-error, and record-payload tests with:
+
+```sh
+cd tickets
+npm test
+npm run build
+```
 
 ## Manage
 
