@@ -56,7 +56,9 @@ Corteza listens only on `127.0.0.1`; PostgreSQL is reachable only within the Com
 
 ## Tickets app
 
-Open <http://localhost:18080/tickets> (or `<domain>/tickets`). The Vue 3 Composition API app uses shadcn-vue components to list Support Ticket records, create and edit tickets in a modal, and delete tickets after confirmation. The list uses cursor pagination, and field labels, required fields, and select options come from the Corteza module definition. Due dates are displayed and entered in your browser's local time zone and stored in UTC.
+Select **Tickets** on the Corteza home screen, alongside Namespaces, Admin Area, and Workflows, or open <http://localhost:18080/tickets> (or `<domain>/tickets`). The Vue 3 Composition API app uses shadcn-vue components to list Support Ticket records, create and edit tickets in a modal, and delete tickets after confirmation. The list uses cursor pagination, and field labels, required fields, and select options come from the Corteza module definition. Due dates are displayed and entered in your browser's local time zone and stored in UTC.
+
+The home-screen tile is registered from [`seed/tickets-application.json`](seed/tickets-application.json) and links to `tickets/`. Its icon lives in [`tickets/public/ticket.svg`](tickets/public/ticket.svg). The seed checks for an existing application by its stable seed label, name, or Tickets URL, including deleted applications. Repeat runs preserve changes made under **Admin Area → Applications** and do not recreate a deleted tile. On an existing installation, run `docker compose run --rm seed` and rebuild the server as below, then refresh the home screen.
 
 The source lives in [`tickets/`](tickets/). [`Dockerfile.server`](Dockerfile.server) builds it with Vite and copies the static output into Corteza's webapp directory. Compose registers `tickets` in `HTTP_WEBAPP_LIST`, so Corteza serves the app and its assets directly on the same domain and port.
 

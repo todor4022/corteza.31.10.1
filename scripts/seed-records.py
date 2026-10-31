@@ -1,4 +1,4 @@
-"""Seed sample tickets through a temporary, container-local Corteza API."""
+"""Seed the Tickets application and sample tickets through a container-local API."""
 
 import json
 import os
@@ -55,7 +55,31 @@ def local_api():
                         process.wait()
 
 
-def seed_records(base, samples):
+def seed_application(api, application):
+    key = application["labels"]["plexysHomeworkSeedKey"]
+    cursor = ""
+    while True:
+        # Include deleted applications so an administrator's deletion is kept.
+        query = {"limit": 100, "deleted": 1}
+        if cursor:
+            query["pageCursor"] = cursor
+        page = api("/application/?" + urlencode(query), service="system")
+        for existing in page["set"]:
+            if (
+                (existing.get("labels") or {}).get("plexysHomeworkSeedKey") == key
+                or existing["name"] == application["name"]
+                or (existing.get("unify") or {}).get("url", "").strip("/") == "tickets"
+            ):
+                print("Tickets application already exists; skipping.", flush=True)
+                return
+        cursor = page.get("filter", {}).get("nextPage")
+        if not cursor:
+            break
+    api("/application/", application, service="system")
+    print("Registered the Tickets home-screen application.", flush=True)
+
+
+def seed_resources(base, samples, application):
     # A short-lived token works even if an existing user changed their password.
     result = subprocess.run(
         ["corteza-server", "auth", "jwt", os.environ["SEED_USER_EMAIL"],
@@ -72,20 +96,22 @@ def seed_records(base, samples):
         raise RuntimeError("Could not obtain the seed user's API token")
     token = match.group()
 
-    def api(path, payload=None):
+    def api(path, payload=None, service="compose"):
         headers = {"Authorization": "Bearer " + token}
         if payload is not None:
             headers["Content-Type"] = "application/json"
         request = Request(
-            base + "/api/compose" + path,
+            base + "/api/" + service + path,
             headers=headers,
             data=None if payload is None else json.dumps(payload).encode(),
         )
         with urlopen(request, timeout=30) as response:
             body = json.load(response)
         if body.get("error"):
-            raise RuntimeError("Corteza record seed failed: " + json.dumps(body["error"]))
+            raise RuntimeError("Corteza seed failed: " + json.dumps(body["error"]))
         return body["response"]
+
+    seed_application(api, application)
 
     namespaces = api("/namespace/?slug=plexys-homework")["set"]
     if len(namespaces) != 1:
@@ -130,8 +156,9 @@ def seed_records(base, samples):
 
 if __name__ == "__main__":
     samples = json.loads(Path("/seed/support-tickets.json").read_text())
+    application = json.loads(Path("/seed/tickets-application.json").read_text())
     keys = [sample["seedKey"] for sample in samples]
     if not all(keys) or len(keys) != len(set(keys)):
         raise ValueError("Sample ticket seed keys must be non-empty and unique")
     with local_api() as base:
-        seed_records(base, samples)
+        seed_resources(base, samples, application)

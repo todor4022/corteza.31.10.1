@@ -1,0 +1,13 @@
+{
+  "name": "Tickets",
+  "enabled": true,
+  "labels": {
+    "plexysHomeworkSeedKey": "tickets-application"
+  },
+  "unify": {
+    "listed": true,
+    "icon": "tickets/ticket.svg",
+    "logo": "tickets/ticket.svg",
+    "url": "tickets/"
+  }
+}
