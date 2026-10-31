@@ -201,7 +201,7 @@ async function deleteTicket() {
             ><Ticket class="size-5" aria-hidden="true"
           /></span>
           <span class="text-sm font-semibold tracking-tight"
-            >Plexys Homework<span
+            >Plexys<span
               class="mt-0.5 block text-xs font-normal text-muted-foreground"
               >Support desk</span
             ></span
@@ -225,9 +225,6 @@ async function deleteTicket() {
               class="max-w-56 truncate text-xs text-muted-foreground"
             >
               {{ user.email }}
-            </p>
-            <p v-else class="text-xs text-muted-foreground">
-              Signed in with Corteza
             </p>
           </div>
           <Button
