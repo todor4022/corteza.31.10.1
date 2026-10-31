@@ -17,7 +17,7 @@
 
 3. Build and start everything:
 
-   docker compose up
+   docker compose up -d
 
 4. Open http://localhost:18080 and sign in immediately with:
 
