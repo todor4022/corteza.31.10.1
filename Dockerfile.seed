@@ -1,0 +1,7 @@
+ARG VERSION=2026.9
+FROM cortezaproject/corteza:${VERSION}
+
+# The record seed uses Python's standard library for HTTP and JSON.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python3 \
+    && rm -rf /var/lib/apt/lists/*

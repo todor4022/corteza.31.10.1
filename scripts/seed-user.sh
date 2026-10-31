@@ -31,4 +31,5 @@ fi
 
 printf 'Seeding the Plexys Homework namespace and Support Ticket module.\n'
 corteza-server import --skip-existing /seed/plexys-homework.yaml
-printf 'Seed administrator and Plexys Homework resources are ready.\n'
+python3 /scripts/seed-records.py
+printf 'Seed administrator, Plexys Homework resources, and sample tickets are ready.\n'

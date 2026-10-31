@@ -17,7 +17,7 @@ Open <http://localhost:18080> and sign in with the seeded administrator:
 
 These are the local demo defaults. Set `SEED_USER_EMAIL` and `SEED_USER_PASSWORD` in `.env` before the first start to use different credentials.
 
-The one-shot `seed` service waits for PostgreSQL, initializes Corteza's database through its CLI, creates the administrator, and imports the namespace and module below. The web server starts after seeding succeeds. The seed container exiting with code 0 is expected.
+The one-shot `seed` service waits for PostgreSQL, initializes Corteza's database through its CLI, creates the administrator, and imports the namespace, module, and sample tickets below. The web server starts after seeding succeeds. The seed container exiting with code 0 is expected. Docker Compose builds the seed image on the first start; it adds Python for the record seed's HTTP and JSON handling.
 
 In **Low Code**, open the **Plexys Homework** namespace (`plexys-homework`). Its **Support Ticket** module (`support-ticket`) has these fields:
 
@@ -30,6 +30,15 @@ In **Low Code**, open the **Plexys Homework** namespace (`plexys-homework`). Its
 | Due Date | `DueDate` | Date/Time | No | Both date and time |
 
 The seeded administrator can manage this namespace and module. Their definitions live in [`seed/plexys-homework.yaml`](seed/plexys-homework.yaml).
+
+Two sample tickets are created, with descriptions and due dates:
+
+| Subject | Status | Priority |
+| --- | --- | --- |
+| Unable to sign in to the customer portal | New | High |
+| Email notifications are delayed | In Progress | Medium |
+
+Their initial values live in [`seed/support-tickets.json`](seed/support-tickets.json). The record seed briefly runs a Corteza API on the seed container's loopback interface and creates the tickets as the seeded administrator before the main server starts.
 
 Email is not configured, so local sign-ups are automatically confirmed.
 
@@ -58,7 +67,7 @@ docker compose down
 # PostgreSQL console
 docker compose exec db psql -U corteza -d corteza
 
-# Rerun the user and namespace seed (existing resources are preserved)
+# Rerun all seeds (existing accounts, resources, and tickets are preserved)
 docker compose run --rm seed
 # Load any newly imported module definitions into the running server
 docker compose restart server
@@ -81,6 +90,8 @@ docker compose exec server corteza-server users password demo@example.com
 ```
 
 Namespace and module seeding still runs when the user already exists. The importer uses `--skip-existing`, matching the namespace by slug, the module by handle, and fields by name, so repeat runs preserve edits and reuse the existing resources. The YAML provides initial configuration; change existing fields in Corteza's module editor.
+
+Sample tickets carry a stable `plexysHomeworkSeedKey` in their record metadata. The seed checks these keys, including on soft-deleted records, and skips existing samples. Editing a subject or deleting a sample ticket does not recreate it on the next run. Keep each JSON `seedKey` unchanged to preserve that identity.
 
 To make a database backup while PostgreSQL is running:
 

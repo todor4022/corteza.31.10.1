@@ -1,0 +1,22 @@
+[
+  {
+    "seedKey": "support-ticket-login",
+    "values": {
+      "Subject": "Unable to sign in to the customer portal",
+      "Description": "A customer cannot sign in after resetting their password.\nCheck the account status and authentication logs.",
+      "Status": "New",
+      "Priority": "High",
+      "DueDate": "2026-11-03T10:00:00Z"
+    }
+  },
+  {
+    "seedKey": "support-ticket-notifications",
+    "values": {
+      "Subject": "Email notifications are delayed",
+      "Description": "Ticket update notifications are arriving several minutes late.\nReview the mail queue and SMTP delivery logs.",
+      "Status": "In Progress",
+      "Priority": "Medium",
+      "DueDate": "2026-11-05T15:00:00Z"
+    }
+  }
+]
